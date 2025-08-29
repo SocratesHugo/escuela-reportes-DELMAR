@@ -84,7 +84,7 @@ Route::middleware(['web', 'auth'])->prefix('admin')->name('admin.')->group(funct
 });
 
 
-Route::get('/r/{student}/{week}', [PublicReportsController::class, 'show'])
+Route::get('/r/{student}/{week}', [PublicReportController::class, 'show'])
     ->name('public.report.show')
     ->middleware('signed');
 
