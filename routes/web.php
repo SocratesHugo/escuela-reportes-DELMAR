@@ -9,6 +9,9 @@ use App\Http\Controllers\PublicWeeklyReportController;
 use App\Http\Controllers\ReportsPdfController;
 use App\Http\Controllers\StudentImportController;
 
+use Filament\Http\Controllers\Auth\LoginController;
+
+
 use App\Models\Student;
 use App\Models\Week;
 
@@ -64,3 +67,6 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
         ->name('students.import')
         ->middleware('permission:students.import');
 });
+// Parche: manejar el POST del login de Filament cuando no se registra por sí solo
+Route::post('/admin/login', [LoginController::class, 'store'])
+    ->name('filament.admin.login');
