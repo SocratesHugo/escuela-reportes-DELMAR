@@ -67,6 +67,9 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
         ->name('students.import')
         ->middleware('permission:students.import');
 });
+
 // Parche: manejar el POST del login de Filament cuando no se registra por sí solo
+// Procesar el envío del login del panel
 Route::post('/admin/login', [LoginController::class, 'store'])
+    ->middleware('guest')
     ->name('filament.admin.login');
