@@ -2,15 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\Exports\QuickCsvController;
 use App\Http\Controllers\PublicReportController;
 use App\Http\Controllers\PublicWeeklyReportController;
 use App\Http\Controllers\ReportsPdfController;
 use App\Http\Controllers\StudentImportController;
-
-use Filament\Http\Controllers\Auth\LoginController;
-
 
 use App\Models\Student;
 use App\Models\Week;
@@ -31,7 +30,7 @@ Route::middleware(['signed', 'throttle:60,1'])->group(function () {
         ->whereNumber('parent')->whereNumber('student')->whereNumber('week')
         ->name('public.reports.show');
 
-    // Firmar reporte público
+    // Firmar el reporte público
     Route::post('/r/{parent}/{student}/{week}/sign', [PublicReportController::class, 'sign'])
         ->whereNumber('parent')->whereNumber('student')->whereNumber('week')
         ->name('public.reports.sign');
@@ -68,8 +67,22 @@ Route::middleware(['auth'])->prefix('admin')->as('admin.')->group(function () {
         ->middleware('permission:students.import');
 });
 
-// Parche: manejar el POST del login de Filament cuando no se registra por sí solo
-// Procesar el envío del login del panel
-Route::post('/admin/login', [LoginController::class, 'store'])
-    ->middleware('guest')
-    ->name('filament.admin.login');
+/**
+ * Login de Filament (POST) — evita 405 cuando Filament no registra su ruta
+ */
+Route::post('/admin/login', function (Request $request) {
+    $credentials = $request->validate([
+        'email'    => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+
+    if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $request->session()->regenerate();
+        return redirect()->intended('/admin');
+    }
+
+    return back()
+        ->withErrors(['email' => 'Credenciales inválidas.'])
+        ->onlyInput('email');
+})->middleware('guest')->name('filament.admin.login');
+
